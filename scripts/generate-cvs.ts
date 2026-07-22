@@ -5,7 +5,7 @@ import { chromium } from "playwright";
 import { generateText, generateImage, Output } from "ai";
 import { openrouter, CHAT_MODEL, IMAGE_MODEL } from "@/lib/openrouter";
 import { batchSchema, generationPrompt, type Candidate } from "./cv-schema";
-import { renderCvHtml, TEMPLATE_COUNT } from "./cv-template";
+import { renderCvHtml } from "./cv-template";
 
 const TOTAL = 28;
 const BATCH_SIZE = 7; // small batches keep JSON generation reliable
@@ -85,7 +85,7 @@ async function main() {
   const page = await browser.newPage();
   for (const [i, candidate] of candidates.slice(0, TOTAL).entries()) {
     const photo = await generatePhoto(candidate);
-    const html = renderCvHtml(candidate, photo, i % TEMPLATE_COUNT);
+    const html = renderCvHtml(candidate, photo, i);
     await page.setContent(html, { waitUntil: "networkidle" });
     const file = path.join(OUT_DIR, `${kebab(candidate.fullName)}.pdf`);
     await page.pdf({ path: file, format: "A4", printBackground: true });
