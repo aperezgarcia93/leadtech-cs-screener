@@ -33,12 +33,18 @@ export async function POST(req: Request) {
   const retrieved = rankChunks(queryVector, loadIndex(), TOP_K);
   const relevant = retrieved.filter(c => c.score >= MIN_SCORE);
 
-  // Deduplicate sources per candidate+section for the UI
-  const sources: SourceRef[] = [...new Map(
-    relevant.map(c => [`${c.file}#${c.section}`, {
-      candidate: c.candidate, section: c.section, file: c.file, score: c.score,
-    }]),
-  ).values()];
+  // Deduplicate sources per candidate+section for the UI, keeping the
+  // highest-scoring chunk for each key. `relevant` is sorted descending by
+  // score, so only the first occurrence of a key should be kept — a plain
+  // `new Map(array)` would keep the LAST (lowest-scoring) occurrence instead.
+  const sourceMap = new Map<string, SourceRef>();
+  for (const c of relevant) {
+    const key = `${c.file}#${c.section}`;
+    if (!sourceMap.has(key)) {
+      sourceMap.set(key, { candidate: c.candidate, section: c.section, file: c.file, score: c.score });
+    }
+  }
+  const sources: SourceRef[] = [...sourceMap.values()];
 
   const context = relevant.map(c => c.text).join("\n\n---\n\n")
     || "No relevant CV excerpts were found for this question.";
