@@ -11,8 +11,26 @@ const TOTAL = 28;
 const BATCH_SIZE = 7; // small batches keep JSON generation reliable
 const OUT_DIR = path.join(process.cwd(), "data", "cvs");
 
+// Letters that don't decompose under NFD (they're distinct letters, not
+// base+combining-accent pairs) must be transliterated explicitly, or the
+// NFD strip below leaves them untouched and they collapse to stray hyphens
+// (e.g. "Ingrid Sørensen" -> "ingrid-s-rensen" instead of "ingrid-sorensen").
+const NON_DECOMPOSABLE: Record<string, string> = {
+  ø: "o", Ø: "O",
+  å: "a", Å: "A",
+  æ: "ae", Æ: "AE",
+  ß: "ss",
+  đ: "d", Đ: "D",
+};
+
 const kebab = (name: string) =>
-  name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  name
+    .replace(/[øØåÅæÆßđĐ]/g, (ch) => NON_DECOMPOSABLE[ch])
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 async function generateBatch(count: number, existingNames: string[], attempt = 1): Promise<Candidate[]> {
   try {

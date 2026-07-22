@@ -4,10 +4,10 @@ Plan: `docs/superpowers/plans/2026-07-22-cv-screener.md` (spec: `docs/superpower
 
 ## Tasks
 
-- [ ] Task 1: Scaffold Next.js app + tooling (deps, vitest, env, npm scripts)
-- [ ] Task 2: Embeddings module — local MiniLM behind `Embedder` interface (TDD)
-- [ ] Task 3: Retrieval module — cosine top-k over JSON index (TDD)
-- [ ] Task 4: OpenRouter client config with env-overridable model IDs
+- [x] Task 1: Scaffold Next.js app + tooling (deps, vitest, env, npm scripts)
+- [x] Task 2: Embeddings module — local MiniLM behind `Embedder` interface (TDD)
+- [x] Task 3: Retrieval module — cosine top-k over JSON index (TDD)
+- [x] Task 4: OpenRouter client config with env-overridable model IDs
 - [ ] Task 5: CV generation script — LLM profiles → HTML templates → PDFs + AI photos
 - [ ] Task 6: Ingestion script — PDF text → section chunks → vectors → index.json (TDD chunker)
 - [ ] Task 7: Chat API route — RAG with grounding + streamed source metadata

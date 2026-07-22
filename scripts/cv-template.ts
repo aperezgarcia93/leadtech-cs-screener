@@ -64,7 +64,7 @@ body { font-family: Georgia, "Times New Roman", serif; color: #1f2933; }
 .name { font-size: 26px; font-weight: bold; margin: 0; }
 .headline { font-size: 15px; color: #52606d; margin: 2px 0 8px; }
 .contact { font-size: 11px; color: #52606d; }
-h2 { font-size: 13px; letter-spacing: 1.5px; border-bottom: 1px solid #cbd2d9; padding-bottom: 4px; margin: 18px 0 8px; }
+h2 { font-size: 13px; border-bottom: 1px solid #cbd2d9; padding-bottom: 4px; margin: 18px 0 8px; }
 .job-head { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
 .job-period { float: right; font-weight: normal; color: #52606d; }
 ul { margin: 4px 0 10px 18px; padding: 0; font-size: 12px; }
@@ -97,23 +97,36 @@ p.summary { font-size: 12px; line-height: 1.5; }
 </body></html>`;
 }
 
-/** Variant 1: modern sans with a colored sidebar for contact/skills/languages. */
+/**
+ * Variant 1: modern sans with a full-width header band followed by a colored
+ * sidebar (skills/languages) and a main column (summary/experience/education).
+ *
+ * The header band sits above both columns so contact/photo never share a row
+ * with column content. The sidebar starts with extra top padding relative to
+ * the main column so their first headings (SKILLS vs. SUMMARY) never render
+ * on the same line — Chromium's PDF text layer otherwise interleaves
+ * same-row text from both columns, which can shred a heading into
+ * individually-positioned glyphs during text extraction.
+ */
 function renderSidebar(candidate: Candidate, photoDataUri: string): string {
   const { experience, education, skills, languages } = buildSections(candidate);
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 ${PAGE_CSS}
 body { font-family: Arial, Helvetica, sans-serif; color: #102a43; }
-.page { display: flex; min-height: 297mm; }
-.sidebar { width: 34%; background: #10456b; color: #f0f4f8; padding: 32px 20px; }
-.photo { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 16px; border: 3px solid #f0f4f8; }
-.sidebar h2 { font-size: 12px; letter-spacing: 1.5px; border-bottom: 1px solid #4a90c4; padding-bottom: 4px; margin: 20px 0 8px; color: #bcccdc; }
-.sidebar .contact { font-size: 11px; line-height: 1.8; }
+.topband { display: flex; align-items: center; gap: 18px; padding: 28px 32px; border-bottom: 2px solid #10456b; }
+.photo { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 3px solid #10456b; }
+.name { font-size: 24px; font-weight: bold; margin: 0; color: #10456b; }
+.headline { font-size: 14px; color: #486581; margin: 2px 0 6px; }
+.contact { font-size: 11px; color: #627d98; }
+.body { display: flex; }
+.sidebar { width: 34%; background: #10456b; color: #f0f4f8; padding: 56px 20px 32px; }
+.sidebar h2 { font-size: 12px; border-bottom: 1px solid #4a90c4; padding-bottom: 4px; margin: 20px 0 8px; color: #bcccdc; }
+.sidebar h2:first-child { margin-top: 0; }
 .sidebar .skill { display: block; font-size: 11px; padding: 3px 0; }
 .sidebar .languages { list-style: none; padding: 0; margin: 0; font-size: 11px; line-height: 1.8; }
-.main { width: 66%; padding: 32px 28px; }
-.name { font-size: 24px; font-weight: bold; margin: 0; }
-.headline { font-size: 14px; color: #486581; margin: 2px 0 16px; }
-.main h2 { font-size: 13px; letter-spacing: 1.5px; color: #10456b; border-bottom: 2px solid #10456b; padding-bottom: 4px; margin: 16px 0 8px; }
+.main { width: 66%; padding: 28px 28px 32px; }
+.main h2 { font-size: 13px; color: #10456b; border-bottom: 2px solid #10456b; padding-bottom: 4px; margin: 0 0 8px; }
+.main h2:not(:first-child) { margin-top: 16px; }
 .job-head { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
 .job-period { float: right; font-weight: normal; color: #627d98; }
 ul { margin: 4px 0 10px 18px; padding: 0; font-size: 12px; }
@@ -122,45 +135,59 @@ ul { margin: 4px 0 10px 18px; padding: 0; font-size: 12px; }
 p.summary { font-size: 12px; line-height: 1.5; }
 </style></head><body>
 <div class="page">
-  <div class="sidebar">
+  <div class="topband">
     <img class="photo" src="${photoDataUri}" alt="">
-    <h2>LANGUAGES</h2>
-    <ul class="languages">${languages}</ul>
-    <h2>SKILLS</h2>
-    <div>${skills}</div>
-    <h2>CONTACT</h2>
-    <div class="contact">${esc(candidate.email)}<br>${esc(candidate.phone)}<br>${esc(candidate.location)}</div>
+    <div>
+      <p class="name">${esc(candidate.fullName)}</p>
+      <p class="headline">${esc(candidate.headline)}</p>
+      <p class="contact">${esc(candidate.email)} &middot; ${esc(candidate.phone)} &middot; ${esc(candidate.location)}</p>
+    </div>
   </div>
-  <div class="main">
-    <p class="name">${esc(candidate.fullName)}</p>
-    <p class="headline">${esc(candidate.headline)}</p>
-    <h2>SUMMARY</h2>
-    <p class="summary">${esc(candidate.summary)}</p>
-    <h2>EXPERIENCE</h2>
-    ${experience}
-    <h2>EDUCATION</h2>
-    ${education}
+  <div class="body">
+    <div class="sidebar">
+      <h2>SKILLS</h2>
+      <div>${skills}</div>
+      <h2>LANGUAGES</h2>
+      <ul class="languages">${languages}</ul>
+    </div>
+    <div class="main">
+      <h2>SUMMARY</h2>
+      <p class="summary">${esc(candidate.summary)}</p>
+      <h2>EXPERIENCE</h2>
+      ${experience}
+      <h2>EDUCATION</h2>
+      ${education}
+    </div>
   </div>
 </div>
 </body></html>`;
 }
 
-/** Variant 2: minimal two-column layout with a thin rule instead of a filled sidebar. */
+/**
+ * Variant 2: minimal two-column layout with a thin rule instead of a filled
+ * sidebar. SUMMARY renders in a full-width band before the columns begin, so
+ * its heading is never split across columns. The right column then starts
+ * with extra top padding relative to the left column so the first headings
+ * of each column (EXPERIENCE vs. EDUCATION) never land on the same rendered
+ * row — see renderSidebar's doc comment for why that matters for PDF text
+ * extraction.
+ */
 function renderMinimalTwoColumn(candidate: Candidate, photoDataUri: string): string {
   const { experience, education, skills, languages } = buildSections(candidate);
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 ${PAGE_CSS}
 body { font-family: "Helvetica Neue", Arial, sans-serif; color: #202124; }
 .page { padding: 40px 40px 40px 40px; }
-.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .photo { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; }
 .name { font-size: 25px; font-weight: 300; margin: 0; }
 .headline { font-size: 14px; color: #5f6368; margin: 4px 0; }
 .contact { font-size: 10px; color: #5f6368; }
+.summary-band { border-top: 1px solid #dadce0; border-bottom: 1px solid #dadce0; padding: 14px 0; margin-bottom: 20px; }
 .columns { display: flex; gap: 32px; }
 .left { width: 62%; }
-.right { width: 38%; border-left: 1px solid #dadce0; padding-left: 24px; }
-h2 { font-size: 12px; letter-spacing: 2px; color: #5f6368; margin: 0 0 8px; }
+.right { width: 38%; border-left: 1px solid #dadce0; padding-left: 24px; padding-top: 40px; }
+h2 { font-size: 12px; color: #5f6368; margin: 0 0 8px; }
 .job-head { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
 .job-period { display: block; font-weight: normal; color: #5f6368; font-size: 10.5px; }
 ul { margin: 4px 0 14px 16px; padding: 0; font-size: 11.5px; }
@@ -168,7 +195,7 @@ ul { margin: 4px 0 14px 16px; padding: 0; font-size: 11.5px; }
 .edu-meta { font-size: 10.5px; color: #5f6368; margin-bottom: 10px; }
 .skill { display: inline-block; background: #f1f3f4; border-radius: 3px; padding: 2px 7px; margin: 2px 4px 2px 0; font-size: 10.5px; }
 .languages { list-style: none; padding: 0; margin: 0 0 16px; font-size: 11.5px; line-height: 1.7; }
-p.summary { font-size: 11.5px; line-height: 1.6; margin-bottom: 16px; }
+p.summary { font-size: 11.5px; line-height: 1.6; margin: 8px 0 0; }
 section { margin-bottom: 18px; }
 </style></head><body>
 <div class="page">
@@ -180,12 +207,12 @@ section { margin-bottom: 18px; }
     </div>
     <img class="photo" src="${photoDataUri}" alt="">
   </div>
+  <div class="summary-band">
+    <h2>SUMMARY</h2>
+    <p class="summary">${esc(candidate.summary)}</p>
+  </div>
   <div class="columns">
     <div class="left">
-      <section>
-        <h2>SUMMARY</h2>
-        <p class="summary">${esc(candidate.summary)}</p>
-      </section>
       <section>
         <h2>EXPERIENCE</h2>
         ${experience}
