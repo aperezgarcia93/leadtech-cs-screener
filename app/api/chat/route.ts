@@ -11,7 +11,15 @@ import type { ChatMessage, SourceRef } from "@/lib/chat-types";
 
 export const maxDuration = 60;
 
-const TOP_K = 8;
+// TOP_K bounds how many above-threshold chunks we keep; MIN_SCORE is the
+// actual relevance gate. TOP_K must stay comfortably larger than the typical
+// number of relevant hits for a multi-candidate query — at 8 it was silently
+// truncating a chunk that scored above MIN_SCORE (verified during Task 9
+// verification: a "which candidates match X" query had a relevant chunk at
+// rank 8, just past the old cutoff). MIN_SCORE=0.25 is left unchanged: the
+// negative-test query ("pilot's license", not in the corpus) tops out at
+// ~0.234, so 0.25 keeps a real margin against false positives.
+const TOP_K = 15;
 const MIN_SCORE = 0.25; // below this, retrieval found nothing relevant
 
 const systemPrompt = (context: string) => `You are a CV screening assistant. Answer the recruiter's question using ONLY the CV excerpts below.
