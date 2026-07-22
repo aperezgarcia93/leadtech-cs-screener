@@ -1,5 +1,5 @@
 import "dotenv/config"; // tsx does not auto-load .env.local
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
 import { generateText, generateImage, Output } from "ai";
@@ -67,6 +67,9 @@ async function generatePhoto(candidate: Candidate): Promise<string> {
 }
 
 async function main() {
+  // Regeneration must be idempotent: wipe any pre-existing corpus first so
+  // reruns never leave stale PDFs mixed in with the new batch.
+  await rm(OUT_DIR, { recursive: true, force: true });
   await mkdir(OUT_DIR, { recursive: true });
   const candidates: Candidate[] = [];
   while (candidates.length < TOTAL) {
