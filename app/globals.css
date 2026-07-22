@@ -1,19 +1,62 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: #fdfcfc;
+  --ink: #201d1d;
+  --body-text: #424245;
+  --mute: #646262;
+  --surface-soft: #f8f7f7;
+  --surface-card: #f1eeee;
+  --hairline: rgba(15, 0, 0, 0.12);
+  --hairline-strong: #646262;
+  --accent: #007aff;
+  --accent-hover: #0056b3;
+  --success: #30d158;
+  --danger: #ff3b30;
+  --warning: #ff9f0a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --canvas: #201d1d;
+    --ink: #fdfcfc;
+    --body-text: #d8d6d6;
+    --mute: #9a9898;
+    --surface-soft: #302c2c;
+    --surface-card: #3a3535;
+    --hairline: rgba(253, 252, 252, 0.12);
+    --hairline-strong: #9a9898;
+    /* Lightened from the light-mode #007aff for AA contrast against the
+       near-black dark canvas; DESIGN.md defines no dark palette, so this
+       is an adaptation in the same spirit, not a spec value. */
+    --accent: #409cff;
+    --accent-hover: #66b1ff;
+    --success: #30d158;
+    --danger: #ff453a;
+    --warning: #ff9f0a;
   }
 }
 
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-ink: var(--ink);
+  --color-body: var(--body-text);
+  --color-mute: var(--mute);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-card: var(--surface-card);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--canvas);
+  color: var(--ink);
 }
