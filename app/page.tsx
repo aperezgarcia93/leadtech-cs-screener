@@ -14,12 +14,15 @@ const SUGGESTIONS = [
 
 export default function Page() {
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status, error } = useChat<ChatMessage>({
+  const { messages, sendMessage, status, error, clearError } = useChat<ChatMessage>({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
 
   const submit = (text: string) => {
-    if (text.trim() && status === "ready") {
+    if (text.trim() && status !== "submitted" && status !== "streaming") {
+      if (status === "error") {
+        clearError();
+      }
       sendMessage({ text });
       setInput("");
     }
@@ -73,7 +76,7 @@ export default function Page() {
           placeholder="e.g. Who has worked in fintech?"
           className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 dark:border-slate-600 dark:bg-slate-900"
         />
-        <button type="submit" disabled={status !== "ready"}
+        <button type="submit" disabled={status === "submitted" || status === "streaming"}
           className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900">
           Ask
         </button>
