@@ -65,7 +65,7 @@ export function ChatMessageBubble({
           </button>
         )}
 
-        {!isUser && (
+        {!isUser && text.length > 0 && (
           <SourceChips
             sources={sources}
             isShortlisted={isShortlisted}
