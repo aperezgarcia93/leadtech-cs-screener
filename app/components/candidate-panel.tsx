@@ -200,8 +200,9 @@ export function CandidatePanel({
                 <button
                   type="button"
                   onClick={() => onDeleteConversation(c.id)}
+                  disabled={isBusy && c.id === activeConversationId}
                   aria-label={`Delete conversation "${c.title}"`}
-                  className="flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded border border-hairline-strong text-xs text-mute hover:text-danger"
+                  className="flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded border border-hairline-strong text-xs text-mute hover:text-danger disabled:opacity-50"
                 >
                   ✕
                 </button>
