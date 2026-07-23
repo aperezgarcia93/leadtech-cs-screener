@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { ChatStatus } from "ai";
 import type { CandidateSummary } from "@/lib/candidates";
 import type { ChatMessage } from "@/lib/chat-types";
@@ -40,6 +40,13 @@ export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
     setPanelOpen(false);
   };
 
+  const handleMessagesChange = useCallback(
+    (messages: ChatMessage[]) => {
+      conversations.saveConversation(conversations.activeConversationId, messages);
+    },
+    [conversations.activeConversationId, conversations.saveConversation],
+  );
+
   return (
     <div className="flex h-dvh flex-col bg-canvas text-ink">
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-hairline px-4">
@@ -75,9 +82,7 @@ export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
         <ChatThread
           key={conversations.activeConversationId}
           initialMessages={initialMessages}
-          onMessagesChange={messages =>
-            conversations.saveConversation(conversations.activeConversationId, messages)
-          }
+          onMessagesChange={handleMessagesChange}
           onStatusChange={setStatus}
           isShortlisted={shortlist.isShortlisted}
           onToggleShortlist={shortlist.toggle}
