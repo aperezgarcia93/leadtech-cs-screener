@@ -9,6 +9,7 @@ import { useShortlist } from "@/app/hooks/use-shortlist";
 import { CandidatePanel } from "./candidate-panel";
 import { ChatMessageBubble } from "./chat-message";
 import { FollowUpSuggestions } from "./follow-up-suggestions";
+import { TypingIndicator } from "./typing-indicator";
 
 const SUGGESTIONS = [
   "Who has experience with Python?",
@@ -62,6 +63,11 @@ export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
     messages.length > 0 &&
     (status === "ready" || status === "error") &&
     lastAssistantMessage !== undefined;
+
+  const lastAssistantHasText =
+    lastAssistantMessage?.parts.some(p => p.type === "text" && p.text.length > 0) ?? false;
+  const showTypingIndicator =
+    status === "submitted" || (status === "streaming" && !lastAssistantHasText);
 
   return (
     <div className="flex h-dvh flex-col bg-canvas text-ink">
@@ -124,7 +130,7 @@ export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
                 onToggleShortlist={shortlist.toggle}
               />
             ))}
-            {status === "submitted" && <p className="text-sm text-mute">Searching CVs…</p>}
+            {showTypingIndicator && <TypingIndicator />}
             {error && <p className="text-sm text-danger">{error.message}</p>}
             {showSuggestions && (
               <FollowUpSuggestions
