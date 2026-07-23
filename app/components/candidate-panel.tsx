@@ -53,7 +53,7 @@ export function CandidatePanel({
           <button
             type="button"
             onClick={onClose}
-            className="rounded px-2 py-1 text-sm hover:bg-surface-soft"
+            className="flex min-h-9 items-center rounded px-3 text-sm hover:bg-surface-soft"
           >
             Close
           </button>
@@ -127,7 +127,8 @@ export function CandidatePanel({
                 type="button"
                 onClick={() => shortlist.toggle(c.file)}
                 title={shortlist.isShortlisted(c.file) ? "Remove from shortlist" : "Add to shortlist"}
-                className={`shrink-0 rounded border px-2 py-1 text-xs ${
+                aria-label={shortlist.isShortlisted(c.file) ? "Remove from shortlist" : "Add to shortlist"}
+                className={`flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded border px-2 text-xs ${
                   shortlist.isShortlisted(c.file)
                     ? "border-accent bg-accent/10 text-accent"
                     : "border-hairline-strong text-mute hover:text-ink"

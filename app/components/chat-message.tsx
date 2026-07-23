@@ -56,9 +56,12 @@ export function ChatMessageBubble({
           <button
             type="button"
             onClick={handleCopy}
-            className="absolute -top-2.5 right-2 rounded border border-hairline-strong bg-canvas px-1.5 py-0.5 text-[10px] text-mute hover:text-ink"
+            aria-label={copied ? "Message copied" : "Copy message"}
+            className="group absolute -top-5 right-2 flex h-9 items-center justify-center px-1"
           >
-            {copied ? "Copied" : "Copy"}
+            <span className="rounded border border-hairline-strong bg-canvas px-1.5 py-0.5 text-[10px] text-mute group-hover:text-ink">
+              {copied ? "Copied" : "Copy"}
+            </span>
           </button>
         )}
 

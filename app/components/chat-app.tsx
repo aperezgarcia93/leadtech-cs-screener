@@ -68,7 +68,7 @@ export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-hairline px-4">
         <div>
           <h1 className="text-xl font-bold">CV Screener</h1>
-          <p className="text-xs text-mute">28 candidates indexed</p>
+          <p className="text-xs text-mute">{`${candidates.length} candidates indexed`}</p>
         </div>
         <div className="flex items-center gap-2">
           {messages.length > 0 && (

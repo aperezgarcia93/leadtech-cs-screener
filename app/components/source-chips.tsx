@@ -31,13 +31,17 @@ export function SourceChips({ sources, isShortlisted, onToggleShortlist }: Sourc
               onClick={() => onToggleShortlist(s.file)}
               title={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
               aria-label={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
-              className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
-                shortlisted
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-canvas text-mute hover:text-ink"
-              }`}
+              className="group -m-2.5 flex h-9 w-9 items-center justify-center rounded-full"
             >
-              {shortlisted ? "✓" : "+"}
+              <span
+                className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
+                  shortlisted
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-canvas text-mute group-hover:text-ink"
+                }`}
+              >
+                {shortlisted ? "✓" : "+"}
+              </span>
             </button>
           </span>
         );
