@@ -87,7 +87,7 @@ export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
           >
             Candidates
             {shortlist.shortlisted.size > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] text-accent-foreground">
                 {shortlist.shortlisted.size}
               </span>
             )}

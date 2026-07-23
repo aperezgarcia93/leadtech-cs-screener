@@ -14,6 +14,12 @@
   --success: #30d158;
   --danger: #ff3b30;
   --warning: #ff9f0a;
+  /* Foreground for text/icons on a solid --accent fill (e.g. the shortlist
+     "check" badge). Tracks --canvas rather than a fixed white: in light mode
+     --canvas is near-white (matches the previous literal white), and in dark
+     mode it resolves to the near-black canvas value, which is what keeps this
+     legible against the lightened dark-mode --accent below. */
+  --accent-foreground: var(--canvas);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -48,6 +54,7 @@
   --color-hairline-strong: var(--hairline-strong);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
   --color-success: var(--success);
   --color-danger: var(--danger);
   --color-warning: var(--warning);

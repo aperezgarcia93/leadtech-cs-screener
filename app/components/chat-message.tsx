@@ -40,7 +40,7 @@ export function ChatMessageBubble({
   return (
     <div className={isUser ? "text-right" : ""}>
       <div
-        className={`relative inline-block max-w-[85%] rounded px-3.5 py-2 text-sm ${
+        className={`relative inline-block max-w-[85%] break-words rounded px-3.5 py-2 text-sm ${
           isUser ? "bg-ink text-canvas" : "border border-hairline bg-surface-soft text-ink"
         }`}
       >
