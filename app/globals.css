@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-:root {
+[data-theme="light"] {
   --canvas: #fdfcfc;
   --ink: #201d1d;
   --body-text: #424245;
@@ -22,25 +22,35 @@
   --accent-foreground: var(--canvas);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --canvas: #201d1d;
-    --ink: #fdfcfc;
-    --body-text: #d8d6d6;
-    --mute: #9a9898;
-    --surface-soft: #302c2c;
-    --surface-card: #3a3535;
-    --hairline: rgba(253, 252, 252, 0.12);
-    --hairline-strong: #9a9898;
-    /* Lightened from the light-mode #007aff for AA contrast against the
-       near-black dark canvas; DESIGN.md defines no dark palette, so this
-       is an adaptation in the same spirit, not a spec value. */
-    --accent: #409cff;
-    --accent-hover: #66b1ff;
-    --success: #30d158;
-    --danger: #ff453a;
-    --warning: #ff9f0a;
-  }
+[data-theme="dark"] {
+  --canvas: #201d1d;
+  --ink: #fdfcfc;
+  --body-text: #d8d6d6;
+  --mute: #9a9898;
+  --surface-soft: #302c2c;
+  --surface-card: #3a3535;
+  --hairline: rgba(253, 252, 252, 0.12);
+  --hairline-strong: #9a9898;
+  /* Lightened from the light-mode #007aff for AA contrast against the
+     near-black dark canvas; DESIGN.md defines no dark palette, so this
+     is an adaptation in the same spirit, not a spec value. */
+  --accent: #409cff;
+  --accent-hover: #66b1ff;
+  --success: #30d158;
+  --danger: #ff453a;
+  --warning: #ff9f0a;
+  --accent-foreground: var(--canvas);
+}
+
+/* CSS-only icon swap for ThemeToggle — deliberately not React-state-driven,
+   since the inline script in layout.tsx sets [data-theme] on <html> before
+   React hydrates, but nothing corrects a component's own rendered output
+   before then. See app/components/theme-toggle.tsx. */
+[data-theme="dark"] .theme-toggle-icon-light {
+  display: none;
+}
+[data-theme="light"] .theme-toggle-icon-dark {
+  display: none;
 }
 
 @theme inline {

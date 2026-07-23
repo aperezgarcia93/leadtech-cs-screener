@@ -8,6 +8,7 @@ import { useShortlist } from "@/app/hooks/use-shortlist";
 import { useConversations } from "@/app/hooks/use-conversations";
 import { CandidatePanel } from "./candidate-panel";
 import { ChatThread } from "./chat-thread";
+import { ThemeToggle } from "./theme-toggle";
 
 export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
   const [panelOpen, setPanelOpen] = useState(false);
@@ -59,6 +60,7 @@ export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
           <p className="text-xs text-mute">{`${candidates.length} candidates indexed`}</p>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <button
             type="button"
             onClick={handleNewChat}
