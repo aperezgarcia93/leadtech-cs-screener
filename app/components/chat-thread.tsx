@@ -52,9 +52,19 @@ export function ChatThread({
     }
   };
 
+  // Persisting on every [messages] change would write to localStorage on every streamed
+  // token; instead, save only on the transition out of an in-flight request (streaming/
+  // submitted -> ready/error), which also avoids bumping updatedAt merely from mounting
+  // with an already-saved conversation's initialMessages.
+  const prevStatusRef = useRef(status);
   useEffect(() => {
-    onMessagesChange(messages);
-  }, [messages, onMessagesChange]);
+    const wasBusy = prevStatusRef.current === "submitted" || prevStatusRef.current === "streaming";
+    const isDone = status === "ready" || status === "error";
+    if (wasBusy && isDone) {
+      onMessagesChange(messages);
+    }
+    prevStatusRef.current = status;
+  }, [status, messages, onMessagesChange]);
 
   useEffect(() => {
     onStatusChange(status);

@@ -37,6 +37,11 @@ export function ChatMessageBubble({
     }
   };
 
+  // The API route writes the sources part before the text stream starts, so an assistant
+  // message can briefly exist with no text yet — the typing indicator covers that state,
+  // this bubble shouldn't render an empty box alongside it.
+  if (!isUser && text.length === 0) return null;
+
   return (
     <div className={isUser ? "text-right" : ""}>
       <div
