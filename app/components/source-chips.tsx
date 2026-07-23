@@ -1,5 +1,36 @@
 import type { SourceRef } from "@/lib/chat-types";
 
+export interface GroupedSource {
+  candidate: string;
+  file: string;
+  sections: string[];
+  bestScore: number;
+}
+
+export function groupSourcesByCandidate(sources: SourceRef[]): GroupedSource[] {
+  const byFile = new Map<
+    string,
+    { candidate: string; file: string; sections: Set<string>; bestScore: number }
+  >();
+  for (const s of sources) {
+    const existing = byFile.get(s.file);
+    if (existing) {
+      existing.sections.add(s.section);
+      existing.bestScore = Math.max(existing.bestScore, s.score);
+    } else {
+      byFile.set(s.file, {
+        candidate: s.candidate,
+        file: s.file,
+        sections: new Set([s.section]),
+        bestScore: s.score,
+      });
+    }
+  }
+  return [...byFile.values()]
+    .map(g => ({ ...g, sections: [...g.sections] }))
+    .sort((a, b) => b.bestScore - a.bestScore);
+}
+
 interface SourceChipsProps {
   sources: SourceRef[];
   isShortlisted: (file: string) => boolean;
@@ -7,28 +38,29 @@ interface SourceChipsProps {
 }
 
 export function SourceChips({ sources, isShortlisted, onToggleShortlist }: SourceChipsProps) {
-  if (sources.length === 0) return null;
+  const grouped = groupSourcesByCandidate(sources);
+  if (grouped.length === 0) return null;
   return (
     <div className="mt-2 flex flex-wrap gap-1.5">
-      {sources.map(s => {
-        const shortlisted = isShortlisted(s.file);
+      {grouped.map(g => {
+        const shortlisted = isShortlisted(g.file);
         return (
           <span
-            key={`${s.file}#${s.section}`}
+            key={g.file}
             className="inline-flex items-center gap-1 rounded-full border border-hairline-strong bg-surface-soft py-0.5 pl-2.5 pr-1 text-xs text-mute"
           >
             <a
-              href={`/api/cvs/${s.file}`}
+              href={`/api/cvs/${g.file}`}
               target="_blank"
               rel="noreferrer"
-              title={`similarity ${s.score.toFixed(2)} — open PDF`}
+              title={`${g.sections.join(", ")} — similarity ${g.bestScore.toFixed(2)} — open PDF`}
               className="hover:text-ink"
             >
-              {s.candidate} · {s.section}
+              {g.candidate}
             </a>
             <button
               type="button"
-              onClick={() => onToggleShortlist(s.file)}
+              onClick={() => onToggleShortlist(g.file)}
               title={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
               aria-label={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
               className="group -m-2.5 flex h-9 w-9 items-center justify-center rounded-full"
