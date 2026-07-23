@@ -30,6 +30,7 @@ export function SourceChips({ sources, isShortlisted, onToggleShortlist }: Sourc
               type="button"
               onClick={() => onToggleShortlist(s.file)}
               title={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
+              aria-label={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
               className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
                 shortlisted ? "bg-accent text-white" : "bg-canvas text-mute hover:text-ink"
               }`}
