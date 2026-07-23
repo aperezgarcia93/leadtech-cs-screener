@@ -49,7 +49,7 @@ export function writeStoredConversations(conversations: StoredConversation[]): v
 export function deriveTitle(firstUserMessageText: string): string {
   const trimmed = firstUserMessageText.trim();
   if (trimmed.length <= TITLE_MAX_LENGTH) return trimmed || "New conversation";
-  return `${trimmed.slice(0, TITLE_MAX_LENGTH).trimEnd()}…`;
+  return `${trimmed.slice(0, TITLE_MAX_LENGTH - 1).trimEnd()}…`;
 }
 
 /** Keeps the MAX_CONVERSATIONS most-recently-updated conversations. */

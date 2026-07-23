@@ -87,6 +87,13 @@ describe("deriveTitle", () => {
   it("falls back to a default title for empty/whitespace-only input", () => {
     expect(deriveTitle("   ")).toBe("New conversation");
   });
+
+  it("caps output at exactly 40 characters for non-whitespace-boundary input", () => {
+    const repeated = "A".repeat(50);
+    const result = deriveTitle(repeated);
+    expect(result).toBe("A".repeat(39) + "…");
+    expect(result.length).toBe(40);
+  });
 });
 
 describe("pruneConversations", () => {
