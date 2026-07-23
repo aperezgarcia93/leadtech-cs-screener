@@ -40,16 +40,15 @@ export function ChatApp({ candidates }: { candidates: CandidateSummary[] }) {
     setPanelOpen(false);
   };
 
-  // Depending on the whole `conversations` object (a fresh literal from useConversations() every
-  // render) would reintroduce the identity churn this callback exists to prevent; only its two
-  // used fields need tracking, and saveConversation is already a stable useCallback with an empty
-  // dep array.
+  // Destructured so useCallback's deps track only these two reactive values, not the whole
+  // `conversations` object (a fresh literal from useConversations() every render) — depending on
+  // the whole object would reintroduce the identity churn this callback exists to prevent.
+  const { activeConversationId, saveConversation } = conversations;
   const handleMessagesChange = useCallback(
     (messages: ChatMessage[]) => {
-      conversations.saveConversation(conversations.activeConversationId, messages);
+      saveConversation(activeConversationId, messages);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [conversations.activeConversationId, conversations.saveConversation],
+    [activeConversationId, saveConversation],
   );
 
   return (
