@@ -94,11 +94,24 @@ export function SourceChips({ sources, isShortlisted, onToggleShortlist }: Sourc
             <div
               id={tooltipId}
               role="tooltip"
-              className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 w-max max-w-56 rounded border border-hairline-strong bg-canvas px-2.5 py-1.5 text-xs text-ink opacity-0 shadow-sm transition-opacity group-hover/chip:opacity-100 group-focus-within/chip:opacity-100"
+              // pointer-events only turn on together with opacity (both gated on the same
+              // hover/focus condition) — the tooltip sits outside the chip's own box
+              // (bottom-full), so it must be part of the same hoverable region or moving the
+              // cursor toward it drops out of group/chip:hover and the tooltip closes before
+              // it can be reached. Staying pointer-events-none while hidden keeps it from
+              // blocking clicks on whatever it visually overlaps when not shown.
+              className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 w-max max-w-56 rounded border border-hairline-strong bg-canvas px-2.5 py-1.5 text-xs text-ink opacity-0 shadow-sm transition-opacity group-hover/chip:pointer-events-auto group-hover/chip:opacity-100 group-focus-within/chip:pointer-events-auto group-focus-within/chip:opacity-100"
             >
               <p className="font-semibold">{g.candidate}</p>
               <p className="text-mute">Matched in: {g.sections.join(", ")}</p>
-              <p className="mt-1 text-accent">View PDF →</p>
+              <a
+                href={`/api/cvs/${g.file}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 block text-accent hover:underline"
+              >
+                View PDF →
+              </a>
             </div>
           </span>
         );

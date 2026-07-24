@@ -100,7 +100,7 @@ flowchart TD
         RANK -->|top-scoring, above-threshold chunks| PROMPT[grounded system prompt]
         PROMPT -->|excerpts only, cite by name, refuse if absent| LLM2[OpenRouter chat model<br/>lib/openrouter.ts]
         LLM2 -->|streamed answer + source metadata| UI
-        UI -->|source chips, candidate + section| PDFROUTE[app/api/cvs/[file]/route.ts]
+        UI -->|source chips, candidate + section| PDFROUTE["app/api/cvs/[file]/route.ts"]
         PDFROUTE -->|serves original PDF| PDFS
     end
 ```
