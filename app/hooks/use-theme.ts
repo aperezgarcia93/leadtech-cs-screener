@@ -28,18 +28,8 @@ export function writeStoredTheme(theme: Theme): void {
   }
 }
 
-function matchMediaTheme(): Theme | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  } catch {
-    return null;
-  }
-}
-
 export function resolveInitialTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  return readStoredTheme() ?? matchMediaTheme() ?? "light";
+  return readStoredTheme() ?? "dark";
 }
 
 export interface UseThemeResult {

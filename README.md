@@ -19,8 +19,15 @@ excerpts.
 - **A chat API** (`app/api/chat/route.ts`) that embeds the recruiter's question, retrieves the
   top-scoring chunks, and asks an OpenRouter chat model to answer *only* from those excerpts —
   it's told to say so plainly when the CVs don't contain the answer, rather than invent facts.
-- **A chat UI** (`app/page.tsx`) with streaming markdown answers and source chips per answer
-  (candidate + section) that link to the underlying PDF.
+- **A chat UI** (`app/components/chat-app.tsx` + `chat-thread.tsx`) with streaming markdown
+  answers, a three-dot typing indicator while a response is in flight, and source chips per
+  answer (one per candidate, all matched sections in a hover tooltip) that link to the
+  underlying PDF.
+- **A candidate directory sidebar** (`app/components/candidate-panel.tsx`) — browse/search all
+  28 candidates, shortlist any of them, and switch between saved conversations from a History
+  tab (multi-conversation chat history, localStorage-backed, ChatGPT-style).
+- **A light/dark theme toggle** (`app/components/theme-toggle.tsx`), dark by default until
+  the user picks light explicitly.
 
 ## Quickstart
 
@@ -84,7 +91,7 @@ flowchart TD
     end
 
     subgraph chat["Chat request (runtime)"]
-        UI[app/page.tsx<br/>useChat + DefaultChatTransport] -->|POST /api/chat| ROUTE[app/api/chat/route.ts]
+        UI[app/components/chat-thread.tsx<br/>useChat + DefaultChatTransport] -->|POST /api/chat| ROUTE[app/api/chat/route.ts]
         ROUTE -->|embed query, local MiniLM| EMB[lib/embeddings.ts]
         EMB -->|query vector| RANK[lib/retrieval.ts<br/>cosine top-k]
         IDX -.loaded once, cached in memory.-> RANK
@@ -122,14 +129,34 @@ calls, no network round trip. OpenRouter (via the AI SDK) is used only for the c
   above threshold, the model is handed no excerpts and has nothing to hallucinate from. `TOP_K`
   is kept generous (15) relative to `MIN_SCORE` so it never silently truncates chunks that
   already cleared the relevance bar — `MIN_SCORE`, not `TOP_K`, is the actual relevance gate.
+- **Chat history in localStorage, not a database.** Multiple saved conversations need to
+  persist and survive a reload, but there's a single implicit user and no auth — a real
+  database would solve a multi-user problem this app doesn't have. `app/hooks/use-conversations.ts`
+  keeps the same guarded-read/try-catch/malformed-data-is-empty pattern as the shortlist hook,
+  capped at the 50 most-recently-updated conversations. A `key={activeConversationId}` remount
+  of the chat thread on switch avoids needing to hand-reconcile the AI SDK's internal message
+  state across conversations.
 
 ## Project structure
 
 ```
 leadtech/
 ├── app/
-│   ├── page.tsx                  # Chat UI: message list, input, suggestion chips
-│   ├── components/source-chips.tsx
+│   ├── page.tsx                  # Server Component entry: loads candidates, renders ChatApp
+│   ├── layout.tsx                # Root layout; inline script sets the theme before first paint
+│   ├── components/
+│   │   ├── chat-app.tsx          # Outer shell: shortlist/conversations/panel state
+│   │   ├── chat-thread.tsx       # Owns the live useChat instance; keyed by conversation id
+│   │   ├── chat-message.tsx      # Message bubble: markdown, copy button, source chips
+│   │   ├── candidate-panel.tsx   # Sidebar: candidate directory, shortlist, history tabs
+│   │   ├── source-chips.tsx      # One chip per candidate; sections listed in its tooltip
+│   │   ├── typing-indicator.tsx  # Three-dot loading state while a response is in flight
+│   │   ├── theme-toggle.tsx      # Light/dark toggle
+│   │   └── follow-up-suggestions.tsx
+│   ├── hooks/
+│   │   ├── use-shortlist.ts      # Global shortlist, localStorage-backed
+│   │   ├── use-conversations.ts  # Multi-conversation history, localStorage-backed
+│   │   └── use-theme.ts          # Theme preference, localStorage-backed
 │   └── api/
 │       ├── chat/route.ts         # RAG endpoint: retrieve -> grounded prompt -> stream
 │       └── cvs/[file]/route.ts   # Serves a CV PDF by filename (for source chip links)
@@ -137,6 +164,7 @@ leadtech/
 │   ├── embeddings.ts             # Embedder interface + local MiniLM implementation
 │   ├── retrieval.ts              # IndexedChunk/RetrievedChunk types, cosine top-k
 │   ├── openrouter.ts             # OpenRouter client + model id config
+│   ├── candidates.ts             # Candidate directory built from the retrieval index
 │   └── chat-types.ts             # ChatMessage / SourceRef shared types
 ├── scripts/
 │   ├── generate-cvs.ts           # OpenRouter -> candidate JSON -> HTML -> PDF
