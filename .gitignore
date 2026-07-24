@@ -34,8 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
-# session scratch
+# session scratch / not for the submission repo
 .superpowers/
+/docs/
 
 # vercel
 .vercel
