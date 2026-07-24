@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import type { SourceRef } from "@/lib/chat-types";
 
 export interface GroupedSource {
@@ -46,6 +49,103 @@ export function filterCitedSources(sources: SourceRef[], text: string): SourceRe
   });
 }
 
+const CLOSE_DELAY_MS = 200;
+
+interface SourceChipProps {
+  source: GroupedSource;
+  shortlisted: boolean;
+  onToggleShortlist: (file: string) => void;
+}
+
+// A CSS-only :hover chain (trigger -> group-hover on a floating descendant) turned out to be
+// too fragile for this exact "move from the chip up into the tooltip" path: browsers don't
+// guarantee hit-testing on every intermediate pixel of a mouse move, so a fast or slightly
+// off-axis movement can lose :hover for a single frame and snap the tooltip shut before the
+// cursor arrives — reproduced directly against this component. A short JS-driven close delay
+// (the standard "hover intent" pattern real UI libraries use for floating panels) is the
+// robust fix: closing is scheduled on mouseleave/blur and cancelled if the cursor (or focus)
+// lands back on the trigger OR the tooltip within the grace window, so the two don't need to
+// touch pixel-for-pixel the way a pure-CSS chain does.
+function SourceChip({ source: g, shortlisted, onToggleShortlist }: SourceChipProps) {
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tooltipId = `source-tooltip-${g.file}`;
+
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const show = () => {
+    cancelClose();
+    setOpen(true);
+  };
+  const scheduleHide = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpen(false), CLOSE_DELAY_MS);
+  };
+
+  useEffect(() => () => cancelClose(), []);
+
+  return (
+    <span
+      className="relative inline-flex items-center gap-1 rounded-full border border-hairline-strong bg-surface-soft py-0.5 pl-2.5 pr-1 text-xs text-mute"
+      onMouseEnter={show}
+      onMouseLeave={scheduleHide}
+    >
+      <a
+        href={`/api/cvs/${g.file}`}
+        target="_blank"
+        rel="noreferrer"
+        aria-describedby={tooltipId}
+        onFocus={show}
+        onBlur={scheduleHide}
+        className="hover:text-ink"
+      >
+        {g.candidate}
+      </a>
+      <button
+        type="button"
+        onClick={() => onToggleShortlist(g.file)}
+        title={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
+        aria-label={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
+        className="group -m-2.5 flex h-9 w-9 items-center justify-center rounded-full"
+      >
+        <span
+          className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
+            shortlisted
+              ? "bg-accent text-accent-foreground"
+              : "bg-canvas text-mute group-hover:text-ink"
+          }`}
+        >
+          {shortlisted ? "✓" : "+"}
+        </span>
+      </button>
+      {open && (
+        <div
+          id={tooltipId}
+          role="tooltip"
+          onMouseEnter={show}
+          onMouseLeave={scheduleHide}
+          className="absolute bottom-full left-0 z-10 mb-2 w-max max-w-56 rounded border border-hairline-strong bg-canvas px-2.5 py-1.5 text-xs text-ink shadow-sm"
+        >
+          <p className="font-semibold">{g.candidate}</p>
+          <p className="text-mute">Matched in: {g.sections.join(", ")}</p>
+          <a
+            href={`/api/cvs/${g.file}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 block text-accent hover:underline"
+          >
+            View PDF →
+          </a>
+        </div>
+      )}
+    </span>
+  );
+}
+
 interface SourceChipsProps {
   sources: SourceRef[];
   isShortlisted: (file: string) => boolean;
@@ -57,65 +157,14 @@ export function SourceChips({ sources, isShortlisted, onToggleShortlist }: Sourc
   if (grouped.length === 0) return null;
   return (
     <div className="mt-2 flex flex-wrap gap-1.5">
-      {grouped.map(g => {
-        const shortlisted = isShortlisted(g.file);
-        const tooltipId = `source-tooltip-${g.file}`;
-        return (
-          <span
-            key={g.file}
-            className="group/chip relative inline-flex items-center gap-1 rounded-full border border-hairline-strong bg-surface-soft py-0.5 pl-2.5 pr-1 text-xs text-mute"
-          >
-            <a
-              href={`/api/cvs/${g.file}`}
-              target="_blank"
-              rel="noreferrer"
-              aria-describedby={tooltipId}
-              className="hover:text-ink"
-            >
-              {g.candidate}
-            </a>
-            <button
-              type="button"
-              onClick={() => onToggleShortlist(g.file)}
-              title={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
-              aria-label={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
-              className="group/shortlist -m-2.5 flex h-9 w-9 items-center justify-center rounded-full"
-            >
-              <span
-                className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
-                  shortlisted
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-canvas text-mute group-hover/shortlist:text-ink"
-                }`}
-              >
-                {shortlisted ? "✓" : "+"}
-              </span>
-            </button>
-            <div
-              id={tooltipId}
-              role="tooltip"
-              // pointer-events only turn on together with opacity (both gated on the same
-              // hover/focus condition) — the tooltip sits outside the chip's own box
-              // (bottom-full), so it must be part of the same hoverable region or moving the
-              // cursor toward it drops out of group/chip:hover and the tooltip closes before
-              // it can be reached. Staying pointer-events-none while hidden keeps it from
-              // blocking clicks on whatever it visually overlaps when not shown.
-              className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 w-max max-w-56 rounded border border-hairline-strong bg-canvas px-2.5 py-1.5 text-xs text-ink opacity-0 shadow-sm transition-opacity group-hover/chip:pointer-events-auto group-hover/chip:opacity-100 group-focus-within/chip:pointer-events-auto group-focus-within/chip:opacity-100"
-            >
-              <p className="font-semibold">{g.candidate}</p>
-              <p className="text-mute">Matched in: {g.sections.join(", ")}</p>
-              <a
-                href={`/api/cvs/${g.file}`}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 block text-accent hover:underline"
-              >
-                View PDF →
-              </a>
-            </div>
-          </span>
-        );
-      })}
+      {grouped.map(g => (
+        <SourceChip
+          key={g.file}
+          source={g}
+          shortlisted={isShortlisted(g.file)}
+          onToggleShortlist={onToggleShortlist}
+        />
+      ))}
     </div>
   );
 }
