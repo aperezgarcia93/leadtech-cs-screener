@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupSourcesByCandidate } from "@/app/components/source-chips";
+import { filterCitedSources, groupSourcesByCandidate } from "@/app/components/source-chips";
 import type { SourceRef } from "@/lib/chat-types";
 
 const source = (candidate: string, section: string, score: number): SourceRef => ({
@@ -39,5 +39,42 @@ describe("groupSourcesByCandidate", () => {
 
   it("returns an empty array for no sources", () => {
     expect(groupSourcesByCandidate([])).toEqual([]);
+  });
+});
+
+describe("filterCitedSources", () => {
+  const upcSources = [
+    source("Luis Martinez", "Education", 0.3),
+    source("Carlos Mendez", "Education", 0.32),
+    source("Marc Serra", "Header", 0.27),
+  ];
+
+  it("keeps only sources whose candidate name is bolded in the answer text", () => {
+    const text = "**Luis Martinez** and **Carlos Mendez** both graduated from UPC.";
+    const result = filterCitedSources(upcSources, text);
+    expect(result.map(s => s.candidate)).toEqual(["Luis Martinez", "Carlos Mendez"]);
+  });
+
+  it("matches case-insensitively", () => {
+    const text = "**luis martinez** graduated from UPC.";
+    expect(filterCitedSources(upcSources, text).map(s => s.candidate)).toEqual([
+      "Luis Martinez",
+    ]);
+  });
+
+  it("excludes a candidate merely mentioned in passing, not bolded", () => {
+    const text = "Unlike Marc Serra, **Luis Martinez** graduated from UPC.";
+    expect(filterCitedSources(upcSources, text).map(s => s.candidate)).toEqual([
+      "Luis Martinez",
+    ]);
+  });
+
+  it("falls back to returning every source when the answer has no bolded names", () => {
+    const text = "Nobody in the CVs has a pilot's license.";
+    expect(filterCitedSources(upcSources, text)).toEqual(upcSources);
+  });
+
+  it("returns an empty array when there are no sources to begin with", () => {
+    expect(filterCitedSources([], "**Anyone** mentioned.")).toEqual([]);
   });
 });

@@ -31,6 +31,21 @@ export function groupSourcesByCandidate(sources: SourceRef[]): GroupedSource[] {
     .sort((a, b) => b.bestScore - a.bestScore);
 }
 
+// Retrieval hands the model every chunk above the relevance threshold — often more candidates
+// than actually end up in the answer. The system prompt instructs the model to bold a
+// candidate's name specifically when it cites their CV, so a **bold** span is a reliable
+// "actually used" signal, distinct from a name merely mentioned in passing (e.g. "unlike Marc
+// Serra, ..."). Falls back to returning every source unfiltered if the answer has no bolded
+// names at all, rather than risk hiding every chip when the model simply forgot to bold.
+export function filterCitedSources(sources: SourceRef[], text: string): SourceRef[] {
+  const bolded = [...text.matchAll(/\*\*(.+?)\*\*/g)].map(m => m[1].toLowerCase());
+  if (bolded.length === 0) return sources;
+  return sources.filter(s => {
+    const name = s.candidate.toLowerCase();
+    return bolded.some(b => b.includes(name) || name.includes(b));
+  });
+}
+
 interface SourceChipsProps {
   sources: SourceRef[];
   isShortlisted: (file: string) => boolean;
@@ -44,16 +59,17 @@ export function SourceChips({ sources, isShortlisted, onToggleShortlist }: Sourc
     <div className="mt-2 flex flex-wrap gap-1.5">
       {grouped.map(g => {
         const shortlisted = isShortlisted(g.file);
+        const tooltipId = `source-tooltip-${g.file}`;
         return (
           <span
             key={g.file}
-            className="inline-flex items-center gap-1 rounded-full border border-hairline-strong bg-surface-soft py-0.5 pl-2.5 pr-1 text-xs text-mute"
+            className="group/chip relative inline-flex items-center gap-1 rounded-full border border-hairline-strong bg-surface-soft py-0.5 pl-2.5 pr-1 text-xs text-mute"
           >
             <a
               href={`/api/cvs/${g.file}`}
               target="_blank"
               rel="noreferrer"
-              title={`${g.sections.join(", ")} — similarity ${g.bestScore.toFixed(2)} — open PDF`}
+              aria-describedby={tooltipId}
               className="hover:text-ink"
             >
               {g.candidate}
@@ -63,18 +79,27 @@ export function SourceChips({ sources, isShortlisted, onToggleShortlist }: Sourc
               onClick={() => onToggleShortlist(g.file)}
               title={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
               aria-label={shortlisted ? "Remove from shortlist" : "Add to shortlist"}
-              className="group -m-2.5 flex h-9 w-9 items-center justify-center rounded-full"
+              className="group/shortlist -m-2.5 flex h-9 w-9 items-center justify-center rounded-full"
             >
               <span
                 className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
                   shortlisted
                     ? "bg-accent text-accent-foreground"
-                    : "bg-canvas text-mute group-hover:text-ink"
+                    : "bg-canvas text-mute group-hover/shortlist:text-ink"
                 }`}
               >
                 {shortlisted ? "✓" : "+"}
               </span>
             </button>
+            <div
+              id={tooltipId}
+              role="tooltip"
+              className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 w-max max-w-56 rounded border border-hairline-strong bg-canvas px-2.5 py-1.5 text-xs text-ink opacity-0 shadow-sm transition-opacity group-hover/chip:opacity-100 group-focus-within/chip:opacity-100"
+            >
+              <p className="font-semibold">{g.candidate}</p>
+              <p className="text-mute">Matched in: {g.sections.join(", ")}</p>
+              <p className="mt-1 text-accent">View PDF →</p>
+            </div>
           </span>
         );
       })}

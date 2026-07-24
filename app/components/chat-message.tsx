@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage } from "@/lib/chat-types";
-import { SourceChips } from "./source-chips";
+import { filterCitedSources, SourceChips } from "./source-chips";
 
 interface ChatMessageBubbleProps {
   message: ChatMessage;
@@ -25,7 +25,7 @@ export function ChatMessageBubble({
     .join("");
 
   const sourcesPart = message.parts.find(p => p.type === "data-sources");
-  const sources = sourcesPart?.data.sources ?? [];
+  const sources = filterCitedSources(sourcesPart?.data.sources ?? [], text);
 
   const handleCopy = async () => {
     try {
