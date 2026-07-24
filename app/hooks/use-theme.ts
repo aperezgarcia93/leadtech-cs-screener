@@ -28,8 +28,21 @@ export function writeStoredTheme(theme: Theme): void {
   }
 }
 
+function matchMediaTheme(): Theme | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  } catch {
+    return null;
+  }
+}
+
+// Only used to seed React state (for toggle's "next value" computation) — first-paint
+// correctness doesn't depend on this at all, since CSS resolves the OS-driven default before
+// this ever runs. Falls back to "light" in the same order CSS itself would: no stored value,
+// no OS signal available -> the bare :root default, which is light.
 export function resolveInitialTheme(): Theme {
-  return readStoredTheme() ?? "dark";
+  return readStoredTheme() ?? matchMediaTheme() ?? "light";
 }
 
 export interface UseThemeResult {

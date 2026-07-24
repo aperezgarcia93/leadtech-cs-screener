@@ -26,8 +26,10 @@ excerpts.
 - **A candidate directory sidebar** (`app/components/candidate-panel.tsx`) — browse/search all
   28 candidates, shortlist any of them, and switch between saved conversations from a History
   tab (multi-conversation chat history, localStorage-backed, ChatGPT-style).
-- **A light/dark theme toggle** (`app/components/theme-toggle.tsx`), dark by default until
-  the user picks light explicitly.
+- **A light/dark theme toggle** (`app/components/theme-toggle.tsx`), following the OS
+  preference by default until the user picks one explicitly — the default is handled entirely
+  in CSS (`@media (prefers-color-scheme)`), so there's nothing for JS to correct and nothing
+  that can flash on load.
 
 ## Quickstart
 

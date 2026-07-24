@@ -11,6 +11,10 @@ function mockLocalStorage(initial: Record<string, string> = {}) {
   };
 }
 
+function mockMatchMedia(matches: boolean) {
+  return (query: string) => ({ media: query, matches });
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
@@ -45,26 +49,49 @@ describe("writeStoredTheme", () => {
 });
 
 describe("resolveInitialTheme", () => {
-  it("returns 'dark' when window is undefined (SSR)", () => {
-    expect(resolveInitialTheme()).toBe("dark");
+  it("returns 'light' when window is undefined (SSR)", () => {
+    expect(resolveInitialTheme()).toBe("light");
   });
 
-  it("prefers a stored theme over the default", () => {
+  it("prefers a stored theme over the OS preference", () => {
     vi.stubGlobal("window", {
       localStorage: mockLocalStorage({ "cv-screener:theme": "light" }),
+      matchMedia: mockMatchMedia(true),
     });
     expect(resolveInitialTheme()).toBe("light");
   });
 
-  it("defaults to dark when nothing is stored", () => {
-    vi.stubGlobal("window", { localStorage: mockLocalStorage() });
+  it("falls back to the OS dark preference when nothing is stored", () => {
+    vi.stubGlobal("window", {
+      localStorage: mockLocalStorage(),
+      matchMedia: mockMatchMedia(true),
+    });
     expect(resolveInitialTheme()).toBe("dark");
   });
 
-  it("defaults to dark when the stored value is malformed", () => {
+  it("falls back to light when nothing is stored and the OS prefers light", () => {
+    vi.stubGlobal("window", {
+      localStorage: mockLocalStorage(),
+      matchMedia: mockMatchMedia(false),
+    });
+    expect(resolveInitialTheme()).toBe("light");
+  });
+
+  it("ignores a malformed stored value and falls back to the OS preference", () => {
     vi.stubGlobal("window", {
       localStorage: mockLocalStorage({ "cv-screener:theme": "sepia" }),
+      matchMedia: mockMatchMedia(true),
     });
     expect(resolveInitialTheme()).toBe("dark");
+  });
+
+  it("falls back to light when matchMedia throws", () => {
+    vi.stubGlobal("window", {
+      localStorage: mockLocalStorage(),
+      matchMedia: () => {
+        throw new Error("not supported");
+      },
+    });
+    expect(resolveInitialTheme()).toBe("light");
   });
 });

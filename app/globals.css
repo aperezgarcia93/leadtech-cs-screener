@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-[data-theme="light"] {
+/* Default (no explicit choice made yet): follow the OS preference. This is plain CSS the
+   browser evaluates during initial style computation, before any paint and with zero JS
+   involvement — so there is nothing for a script to "correct" and nothing that can flash. */
+:root {
   --canvas: #fdfcfc;
   --ink: #201d1d;
   --body-text: #424245;
@@ -22,6 +25,50 @@
   --accent-foreground: var(--canvas);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #201d1d;
+    --ink: #fdfcfc;
+    --body-text: #d8d6d6;
+    --mute: #9a9898;
+    --surface-soft: #302c2c;
+    --surface-card: #3a3535;
+    --hairline: rgba(253, 252, 252, 0.12);
+    --hairline-strong: #9a9898;
+    /* Lightened from the light-mode #007aff for AA contrast against the
+       near-black dark canvas; DESIGN.md defines no dark palette, so this
+       is an adaptation in the same spirit, not a spec value. */
+    --accent: #409cff;
+    --accent-hover: #66b1ff;
+    --success: #30d158;
+    --danger: #ff453a;
+    --warning: #ff9f0a;
+    --accent-foreground: var(--canvas);
+  }
+}
+
+/* Explicit choice, made via the theme toggle and applied as a data-theme attribute on <html>
+   (app/hooks/use-theme.ts). Same values as above, just re-keyed to an attribute selector
+   instead of the media query, so an explicit choice can override the OS default. [data-theme]
+   and :root/@media share the same (0,1,0) specificity, so this only wins because it's declared
+   later in the file — keep these two blocks below the ones above, not reordered. */
+[data-theme="light"] {
+  --canvas: #fdfcfc;
+  --ink: #201d1d;
+  --body-text: #424245;
+  --mute: #646262;
+  --surface-soft: #f8f7f7;
+  --surface-card: #f1eeee;
+  --hairline: rgba(15, 0, 0, 0.12);
+  --hairline-strong: #646262;
+  --accent: #007aff;
+  --accent-hover: #0056b3;
+  --success: #30d158;
+  --danger: #ff3b30;
+  --warning: #ff9f0a;
+  --accent-foreground: var(--canvas);
+}
+
 [data-theme="dark"] {
   --canvas: #201d1d;
   --ink: #fdfcfc;
@@ -31,9 +78,6 @@
   --surface-card: #3a3535;
   --hairline: rgba(253, 252, 252, 0.12);
   --hairline-strong: #9a9898;
-  /* Lightened from the light-mode #007aff for AA contrast against the
-     near-black dark canvas; DESIGN.md defines no dark palette, so this
-     is an adaptation in the same spirit, not a spec value. */
   --accent: #409cff;
   --accent-hover: #66b1ff;
   --success: #30d158;
@@ -42,15 +86,33 @@
   --accent-foreground: var(--canvas);
 }
 
-/* CSS-only icon swap for ThemeToggle — deliberately not React-state-driven,
-   since the inline script in layout.tsx sets [data-theme] on <html> before
-   React hydrates, but nothing corrects a component's own rendered output
-   before then. See app/components/theme-toggle.tsx. */
-[data-theme="dark"] .theme-toggle-icon-light {
+/* CSS-only icon swap for ThemeToggle — deliberately not React-state-driven, since nothing
+   corrects a component's own rendered output before hydration the way the color variables
+   above are corrected (see app/components/theme-toggle.tsx). Mirrors the same two-layer
+   structure as the colors: an OS-driven default, then a higher-specificity explicit override
+   that doesn't need to rely on source order to win. */
+.theme-toggle-icon-dark {
   display: none;
+}
+@media (prefers-color-scheme: dark) {
+  .theme-toggle-icon-light {
+    display: none;
+  }
+  .theme-toggle-icon-dark {
+    display: inline;
+  }
+}
+[data-theme="light"] .theme-toggle-icon-light {
+  display: inline;
 }
 [data-theme="light"] .theme-toggle-icon-dark {
   display: none;
+}
+[data-theme="dark"] .theme-toggle-icon-light {
+  display: none;
+}
+[data-theme="dark"] .theme-toggle-icon-dark {
+  display: inline;
 }
 
 @theme inline {

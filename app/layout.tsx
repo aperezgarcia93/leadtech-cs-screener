@@ -14,13 +14,14 @@ export const metadata: Metadata = {
   description: "RAG-powered chat over generated CVs",
 };
 
-// Mirrors resolveInitialTheme() in app/hooks/use-theme.ts exactly, so the two can never
-// disagree. Runs synchronously during HTML parsing, before first paint — see
-// node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md. The
-// server-rendered <html data-theme="dark"> default below already matches this script's own
-// fallback, so for anyone without a stored preference this is a same-value no-op — there is
-// no light-to-dark transition to correct in the common case, only for a stored "light".
-const themeInitScript = `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");if(t!=="light"&&t!=="dark"){t="dark"}document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`;
+// Only acts when there's an explicit stored choice to enforce — the no-preference default is
+// handled entirely by CSS (`@media (prefers-color-scheme: dark)` in globals.css), which the
+// browser evaluates during initial style computation with zero JS involvement, so there's
+// nothing to correct and nothing that can flash in the common case. Runs synchronously during
+// HTML parsing, before first paint, for the minority case where a stored choice needs to
+// override the OS default — see
+// node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md.
+const themeInitScript = `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t)}}catch(e){}})()`;
 
 export default function RootLayout({
   children,
@@ -30,7 +31,6 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
       suppressHydrationWarning
       className={`h-full antialiased ${jetbrainsMono.variable}`}
     >
